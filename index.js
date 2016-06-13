@@ -4,7 +4,13 @@ var state = {
   keysDown: {west: false, north: false, east: false, south: false},
   direction: 'south',
   image: 'image/stand/south.gif',
-  fireball: null
+  fireball: null,
+  monster: {
+    x: 200,
+    y: 200,
+    vx: 0,
+    vy: 0
+  }
 }
 
 var hero = document.querySelector('#hero')
@@ -17,7 +23,8 @@ var constants = {
   fireballWidth: 44,
   fireballSpeed: 3,
   heroWidth: 23,
-  heroHeight: 26
+  heroHeight: 26,
+  monsterWidth: 50
 }
 
 var update = state => {
@@ -42,12 +49,33 @@ var update = state => {
     }
   }
 
+  if (state.monster) {
+    var monster = Object.assign({}, state.monster, {
+      x: state.monster.x + state.monster.vx,
+      y: state.monster.y + state.monster.vy
+    })
+
+    var {monsterWidth, gameWidth} = constants
+    var monsterUpperBound = gameWidth - monsterWidth
+
+    if (monster.x <= 0 || monster.y <= 0 || monster.x >= monsterUpperBound || monster.y >= monsterUpperBound) {
+      monster = null
+    }
+  }
+
+  // Fireball-monster collision detection
+  if (fireball && monster && isCollision(fireball, monster)) {
+    fireball = null,
+    monster = null
+  }
+
   return Object.assign({}, state, {
     x: state.x + vx,
     y: state.y + vy,
     image: `images/hero/${vx || vy ? 'walk' : 'stand'}/${direction}.gif`,
     direction,
-    fireball
+    fireball,
+    monster
   })
 }
 
@@ -65,12 +93,24 @@ var draw = state => {
   } else {
     fireball.style.display = 'none'
   }
+
+  if (state.monster) {
+    monster.style.left = state.monster.x + 'px'
+    monster.style.top = state.monster.y + 'px'
+    monster.style.display = 'block'
+  } else {
+    monster.style.display = 'none'
+  }
 }
 
 var tick = () => {
   state = update(state)
   draw(state)
   requestAnimationFrame(tick)
+}
+
+var isCollision = (obj1, obj2) => {
+  return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2)) < 40
 }
 
 addEventListener('keydown', e => {
