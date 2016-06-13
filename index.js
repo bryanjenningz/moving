@@ -38,7 +38,8 @@ var update = state => {
                   state.keysDown.north ? 'north' :
                   state.keysDown.south ? 'south' : state.direction
 
-  var {fireballWidth, monsterWidth, gameWidth} = constants
+  var {fireballWidth, monsterWidth, heroWidth, gameWidth} = constants
+  var hero = updateObject(Object.assign({}, state.hero, {vx, vy}), gameWidth - heroWidth, (obj, newObj) => obj)
   var fireball = updateObject(state.fireball, gameWidth - fireballWidth)
   var monster = updateObject(state.monster, gameWidth - monsterWidth)
 
@@ -49,10 +50,7 @@ var update = state => {
   }
 
   return Object.assign({}, state, {
-    hero: {
-      x: state.hero.x + vx,
-      y: state.hero.y + vy
-    },
+    hero,
     image: `images/hero/${vx || vy ? 'walk' : 'stand'}/${direction}.gif`,
     direction,
     fireball,
@@ -60,7 +58,7 @@ var update = state => {
   })
 }
 
-var updateObject = (object, upperBound) => {
+var updateObject = (object, upperBound, outOfBoundsCallback = (obj, newObj) => null) => {
   if (object == null) {
     return null
   }
@@ -75,8 +73,8 @@ var updateObject = (object, upperBound) => {
     y: y + vy
   })
 
-  if (updatedObject.x <= 0 || updatedObject.y <= 0 || updatedObject.x >= upperBound || updatedObject.y >= upperBound) {
-    updatedObject = null
+  if (updatedObject.x < 0 || updatedObject.y < 0 || updatedObject.x >= upperBound || updatedObject.y >= upperBound) {
+    updatedObject = outOfBoundsCallback(object, updatedObject)
   }
 
   return updatedObject
