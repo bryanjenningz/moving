@@ -45,8 +45,12 @@ var update = state => {
 
   // Fireball-monster collision detection
   if (fireball && monster && isCollision(fireball, monster)) {
-    fireball = null,
+    fireball = null
     monster = null
+  }
+
+  if (!monster) {
+    monster = respawnMonster()
   }
 
   return Object.assign({}, state, {
@@ -80,6 +84,15 @@ var updateObject = (object, upperBound, outOfBoundsCallback = (obj, newObj) => n
   return updatedObject
 }
 
+var respawnMonster = () => {
+  var {gameWidth} = constants
+  var location
+  while (!location || isCollision(location, hero, 100)) {
+    location = {x: Math.random() * gameWidth, y: Math.random() * gameWidth}
+  }
+  return Object.assign({}, location, {vx: 0, vy: 0})
+}
+
 var draw = state => {
   hero.style.left = state.hero.x + 'px'
   hero.style.top = state.hero.y + 'px'
@@ -110,8 +123,8 @@ var tick = () => {
   requestAnimationFrame(tick)
 }
 
-var isCollision = (obj1, obj2) => {
-  return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2)) < 40
+var isCollision = (obj1, obj2, minDistance = 40) => {
+  return Math.sqrt(Math.pow(obj1.x - obj2.x, 2) + Math.pow(obj1.y - obj2.y, 2)) < minDistance
 }
 
 addEventListener('keydown', e => {
