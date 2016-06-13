@@ -1,6 +1,8 @@
 var state = {
-  x: 0,
-  y: 0,
+  hero: {
+    x: 0,
+    y: 0
+  },
   keysDown: {west: false, north: false, east: false, south: false},
   direction: 'south',
   image: 'image/stand/south.gif',
@@ -12,6 +14,7 @@ var state = {
     vy: 0
   }
 }
+state.objects = [state.hero, state.monster, state.fireball]
 
 var hero = document.querySelector('#hero')
 var fireball = document.querySelector('#fireball')
@@ -35,33 +38,9 @@ var update = state => {
                   state.keysDown.north ? 'north' :
                   state.keysDown.south ? 'south' : state.direction
 
-  if (state.fireball) {
-    var fireball = Object.assign({}, state.fireball, {
-      x: state.fireball.x + state.fireball.vx,
-      y: state.fireball.y + state.fireball.vy
-    })
-
-    var {fireballWidth, gameWidth} = constants
-    var fireballUpperBound = gameWidth - fireballWidth
-
-    if (fireball.x <= 0 || fireball.y <= 0 || fireball.x >= fireballUpperBound || fireball.y >= fireballUpperBound) {
-      fireball = null
-    }
-  }
-
-  if (state.monster) {
-    var monster = Object.assign({}, state.monster, {
-      x: state.monster.x + state.monster.vx,
-      y: state.monster.y + state.monster.vy
-    })
-
-    var {monsterWidth, gameWidth} = constants
-    var monsterUpperBound = gameWidth - monsterWidth
-
-    if (monster.x <= 0 || monster.y <= 0 || monster.x >= monsterUpperBound || monster.y >= monsterUpperBound) {
-      monster = null
-    }
-  }
+  var {fireballWidth, monsterWidth, gameWidth} = constants
+  var fireball = updateObject(state.fireball, gameWidth - fireballWidth)
+  var monster = updateObject(state.monster, gameWidth - monsterWidth)
 
   // Fireball-monster collision detection
   if (fireball && monster && isCollision(fireball, monster)) {
@@ -70,8 +49,10 @@ var update = state => {
   }
 
   return Object.assign({}, state, {
-    x: state.x + vx,
-    y: state.y + vy,
+    hero: {
+      x: state.hero.x + vx,
+      y: state.hero.y + vy
+    },
     image: `images/hero/${vx || vy ? 'walk' : 'stand'}/${direction}.gif`,
     direction,
     fireball,
@@ -79,9 +60,31 @@ var update = state => {
   })
 }
 
+var updateObject = (object, upperBound) => {
+  if (object == null) {
+    return null
+  }
+
+  var {x, y, vx, vy} = object
+  if (![x, y, vx, vy].every(value => typeof value === 'number')) {
+    return null
+  }
+
+  var updatedObject = Object.assign({}, object, {
+    x: x + vx,
+    y: y + vy
+  })
+
+  if (updatedObject.x <= 0 || updatedObject.y <= 0 || updatedObject.x >= upperBound || updatedObject.y >= upperBound) {
+    updatedObject = null
+  }
+
+  return updatedObject
+}
+
 var draw = state => {
-  hero.style.left = state.x + 'px'
-  hero.style.top = state.y + 'px'
+  hero.style.left = state.hero.x + 'px'
+  hero.style.top = state.hero.y + 'px'
   if (hero.getAttribute('src') !== state.image) {
     hero.setAttribute('src', state.image)
   }
@@ -127,10 +130,10 @@ addEventListener('keyup', e => {
   } else if (e.keyCode === keys.s && !state.fireball) {
     var {heroWidth, heroHeight, fireballWidth, fireballSpeed} = constants
     state.fireball = {
-      x: state.x + (state.direction === 'west' ? -heroWidth :
+      x: state.hero.x + (state.direction === 'west' ? -heroWidth :
                    state.direction === 'east' ? heroWidth : 0)
                  + (heroWidth / 2) - (fireballWidth / 2),
-      y: state.y + (state.direction === 'north' ? -heroHeight :
+      y: state.hero.y + (state.direction === 'north' ? -heroHeight :
                    state.direction === 'south' ? heroHeight : 0)
                  + (heroHeight / 2) - (fireballWidth / 2),
       vx: fireballSpeed * (state.direction === 'west' ? -1 :
