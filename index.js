@@ -1,7 +1,8 @@
 var state = {
   x: 0,
   y: 0,
-  direction: {west: false, north: false, east: false, south: false},
+  keysDown: {west: false, north: false, east: false, south: false},
+  direction: 'south',
   image: 'image/stand/south.gif'
 }
 
@@ -10,16 +11,18 @@ var hero = document.querySelector('#hero')
 var directionCodes = {'37': 'west', '38': 'north', '39': 'east', '40': 'south'}
 
 var update = state => {
-  var vx = (state.direction.west && -1) || (state.direction.east && 1) || 0
-  var vy = (state.direction.north && -1) || (state.direction.south && 1) || 0
+  var vx = (state.keysDown.west && -1) || (state.keysDown.east && 1) || 0
+  var vy = (state.keysDown.north && -1) || (state.keysDown.south && 1) || 0
+  var direction = state.keysDown.west ? 'west' :
+                  state.keysDown.east ? 'east' :
+                  state.keysDown.north ? 'north' :
+                  state.keysDown.south ? 'south' : state.direction
+
   return Object.assign({}, state, {
     x: state.x + vx,
     y: state.y + vy,
-    image: 'images/hero/' + (vx || vy ? 'walk/' : 'walk/' || 'stand/') + (
-      state.direction.west ? 'west' :
-      state.direction.east ? 'east' :
-      state.direction.north ? 'north' : 'south'
-    ) + '.gif'
+    image: `images/hero/${vx || vy ? 'walk' : 'stand'}/${direction}.gif`,
+    direction
   })
 }
 
@@ -40,14 +43,14 @@ var tick = () => {
 addEventListener('keydown', e => {
   if (directionCodes[e.keyCode]) {
     var direction = directionCodes[e.keyCode]
-    state.direction[direction] = true
+    state.keysDown[direction] = true
   }
 })
 
 addEventListener('keyup', e => {
   if (directionCodes[e.keyCode]) {
     var direction = directionCodes[e.keyCode]
-    state.direction[direction] = false
+    state.keysDown[direction] = false
   }
 })
 
