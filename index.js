@@ -85,12 +85,14 @@ addEventListener('keyup', e => {
     var direction = directionCodes[e.keyCode]
     state.keysDown[direction] = false
   } else if (e.keyCode === keys.s && !state.fireball) {
-    var {heroWidth, heroHeight, fireballSpeed} = constants
+    var {heroWidth, heroHeight, fireballWidth, fireballSpeed} = constants
     state.fireball = {
       x: state.x + (state.direction === 'west' ? -heroWidth :
-                   state.direction === 'east' ? heroWidth : 0),
+                   state.direction === 'east' ? heroWidth : 0)
+                 + (heroWidth / 2) - (fireballWidth / 2),
       y: state.y + (state.direction === 'north' ? -heroHeight :
-                   state.direction === 'south' ? heroHeight : 0),
+                   state.direction === 'south' ? heroHeight : 0)
+                 + (heroHeight / 2) - (fireballWidth / 2),
       vx: fireballSpeed * (state.direction === 'west' ? -1 :
                           state.direction === 'east' ? 1 : 0),
       vy: fireballSpeed * (state.direction === 'north' ? -1 :
