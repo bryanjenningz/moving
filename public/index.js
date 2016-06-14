@@ -14,10 +14,13 @@ var state = {
     vy: 0
   }
 }
-state.objects = [state.hero, state.monster, state.fireball]
+
+var players = {}
+var imgs = {}
 
 var hero = document.querySelector('#hero')
 var fireball = document.querySelector('#fireball')
+var game = document.querySelector('#game')
 
 var directionCodes = {'37': 'west', '38': 'north', '39': 'east', '40': 'south'}
 var keys = {s: 83}
@@ -104,11 +107,11 @@ var respawnMonster = () => {
 }
 
 var draw = state => {
-  hero.style.left = state.hero.x + 'px'
-  hero.style.top = state.hero.y + 'px'
-  if (hero.getAttribute('src') !== state.image) {
-    hero.setAttribute('src', state.image)
-  }
+  // hero.style.left = state.hero.x + 'px'
+  // hero.style.top = state.hero.y + 'px'
+  // if (hero.getAttribute('src') !== state.image) {
+  //   hero.setAttribute('src', state.image)
+  // }
 
   if (state.fireball) {
     fireball.style.left = state.fireball.x + 'px'
@@ -125,12 +128,24 @@ var draw = state => {
   } else {
     monster.style.display = 'none'
   }
+
+  for (var id in players) {
+    var otherState = players[id]
+    var otherHero = otherState.hero
+    var img = imgs[id]
+    img.style.left = otherHero.x + 'px'
+    img.style.top = otherHero.y + 'px'
+    if (img.getAttribute('src') !== otherState.image) {
+      img.setAttribute('src', otherState.image)
+    }
+  }
 }
 
 var tick = () => {
   state = update(state)
   draw(state)
   requestAnimationFrame(tick)
+  socket.emit('update', state)
 }
 
 var isCollision = (obj1, obj2, minDistance = 40) => {
@@ -161,6 +176,32 @@ addEventListener('keyup', e => {
                           state.direction === 'east' ? 1 : 0),
       vy: fireballSpeed * (state.direction === 'north' ? -1 :
                           state.direction === 'south' ? 1 : 0)
+    }
+  }
+})
+
+var socket = io()
+
+socket.on('update users state', ({usersState}) => {
+  players = usersState
+
+  // Add images for players that just logged in
+  for (var id in players) {
+    if (!imgs[id]) {
+      var img = document.createElement('img')
+      img.setAttribute('src', 'images/hero/stand/south.gif')
+      img.setAttribute('class', 'player')
+      imgs[id] = img
+      game.appendChild(img)
+    }
+  }
+
+  // Remove images for players who are logged out
+  for (var id in imgs) {
+    if (!players[id]) {
+      var img = imgs[id]
+      game.removeChild(img)
+      delete imgs[id]
     }
   }
 })
