@@ -39,7 +39,17 @@ var update = state => {
                   state.keysDown.south ? 'south' : state.direction
 
   var {fireballWidth, monsterWidth, heroWidth, gameWidth} = constants
-  var hero = updateObject(Object.assign({}, state.hero, {vx, vy}), gameWidth - heroWidth, (obj, newObj) => obj)
+  var hero = updateObject(Object.assign({}, state.hero, {vx, vy}), gameWidth - heroWidth, (obj, newObj) => {
+    if (newObj.x <= 0) {
+      return Object.assign({}, newObj, {x: gameWidth - heroWidth - 1})
+    } else if (newObj.x >= gameWidth - heroWidth) {
+      return Object.assign({}, newObj, {x: 1})
+    } else if (newObj.y <= 0) {
+      return Object.assign({}, newObj, {y: gameWidth - heroWidth - 1})
+    } else if (newObj.y >= gameWidth - heroWidth) {
+      return Object.assign({}, newObj, {y: 1})
+    }
+  })
   var fireball = updateObject(state.fireball, gameWidth - fireballWidth)
   var monster = updateObject(state.monster, gameWidth - monsterWidth)
 
