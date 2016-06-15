@@ -18,7 +18,6 @@ var state = {
 var players = {}
 var imgs = {}
 
-var hero = document.querySelector('#hero')
 var fireball = document.querySelector('#fireball')
 var game = document.querySelector('#game')
 
@@ -42,17 +41,8 @@ var update = state => {
                   state.keysDown.south ? 'south' : state.direction
 
   var {fireballWidth, monsterWidth, heroWidth, gameWidth} = constants
-  var hero = updateObject(Object.assign({}, state.hero, {vx, vy}), gameWidth - heroWidth, (obj, newObj) => {
-    if (newObj.x <= 0) {
-      return Object.assign({}, newObj, {x: gameWidth - heroWidth - 1})
-    } else if (newObj.x >= gameWidth - heroWidth) {
-      return Object.assign({}, newObj, {x: 1})
-    } else if (newObj.y <= 0) {
-      return Object.assign({}, newObj, {y: gameWidth - heroWidth - 1})
-    } else if (newObj.y >= gameWidth - heroWidth) {
-      return Object.assign({}, newObj, {y: 1})
-    }
-  })
+
+  var hero = updateObject(Object.assign({}, state.hero, {vx, vy}), gameWidth - heroWidth, reverseSidesOverBoundary)
   var fireball = updateObject(state.fireball, gameWidth - fireballWidth)
   var monster = updateObject(state.monster, gameWidth - monsterWidth)
 
@@ -75,7 +65,7 @@ var update = state => {
   })
 }
 
-var updateObject = (object, upperBound, outOfBoundsCallback = (obj, newObj) => null) => {
+var updateObject = (object, upperBound, outOfBoundsCallback = () => null) => {
   if (object == null) {
     return null
   }
@@ -91,10 +81,22 @@ var updateObject = (object, upperBound, outOfBoundsCallback = (obj, newObj) => n
   })
 
   if (updatedObject.x < 0 || updatedObject.y < 0 || updatedObject.x >= upperBound || updatedObject.y >= upperBound) {
-    updatedObject = outOfBoundsCallback(object, updatedObject)
+    updatedObject = outOfBoundsCallback(object, updatedObject, upperBound)
   }
 
   return updatedObject
+}
+
+var reverseSidesOverBoundary = (obj, newObj, upperBound) => {
+  if (newObj.x <= 0) {
+    return Object.assign({}, newObj, {x: upperBound - 1})
+  } else if (newObj.x >= upperBound) {
+    return Object.assign({}, newObj, {x: 1})
+  } else if (newObj.y <= 0) {
+    return Object.assign({}, newObj, {y: upperBound - 1})
+  } else if (newObj.y >= upperBound) {
+    return Object.assign({}, newObj, {y: 1})
+  }
 }
 
 var respawnMonster = () => {
@@ -107,12 +109,6 @@ var respawnMonster = () => {
 }
 
 var draw = state => {
-  // hero.style.left = state.hero.x + 'px'
-  // hero.style.top = state.hero.y + 'px'
-  // if (hero.getAttribute('src') !== state.image) {
-  //   hero.setAttribute('src', state.image)
-  // }
-
   if (state.fireball) {
     fireball.style.left = state.fireball.x + 'px'
     fireball.style.top = state.fireball.y + 'px'
